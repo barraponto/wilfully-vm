@@ -65,11 +65,22 @@ Vagrant.configure(2) do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
+    # install the node repository
+    curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+    # install system dependencies
     sudo apt-get update
-    sudo apt-get install -y python3-pip python3.4-venv git libffi-dev libpq-dev
+    sudo apt-get install --yes git nodejs python3-pip python3.4-venv libffi-dev libpq-dev
+    # set node configuration to allow unprivileged global installation
+    npm config set prefix ~/.local
+    echo 'PATH="$HOME/.local/bin:$PATH"' >> ~/.profile
+    source ~/.profile
+    # install node-based dependencies
+    npm install --global bower
     cd /wilfully
+    # install the python packages in a virtual environment
     python3 -m venv env
     source env/bin/activate
-    pip install -r requirements/dev.txt
+    pip install --requirement requirements/dev.txt
+    bower install --allow-root # avoid issues with sudo
   SHELL
 end
